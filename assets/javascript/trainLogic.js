@@ -1,5 +1,5 @@
-//Testing old code to figure out I need to change Start Date to Frequency (mins), Months Worked to Next Arrival, and Monthly Rate to Minutes Away on corresponding chart (comparing Employee Tracker to Cruise Scheduler. 
-firebase.child(-KeaL-two6tBn1D-zGy0).removevalue();
+//Removing previous entries while testing code.
+// firebase.child(-KeaL-two6tBn1D-zGy0).removevalue();
 
 /* global firebase moment */
 // Steps to complete:
@@ -27,18 +27,52 @@ var config = {
 $("#add-cruise-btn").on("click", function(event) {
   event.preventDefault();
 
+
+    // Assume the following situations.
+
+    // (TEST 1)
+    // First Train of the Day is 3:00 AM
+    // Assume Train comes every 3 minutes.
+    // Assume the current time is 3:16 AM....
+    // What time would the next train be...? (Use your brain first)
+    // It would be 3:18 -- 2 minutes away
+
+    // (TEST 2)
+    // First Train of the Day is 3:00 AM
+    // Assume Train comes every 7 minutes.
+    // Assume the current time is 3:16 AM....
+    // What time would the next train be...? (Use your brain first)
+    // It would be 3:21 -- 5 minutes away
+
+
+    // ==========================================================
+
+    // Solved Mathematically
+    // Test case 1:
+    // 16 - 00 = 16
+    // 16 % 3 = 1 (Modulus is the remainder)
+    // 3 - 1 = 2 minutes away
+    // 2 + 3:16 = 3:18
+
+    // Solved Mathematically
+    // Test case 2:
+    // 16 - 00 = 16
+    // 16 % 7 = 2 (Modulus is the remainder)
+    // 7 - 2 = 5 minutes away
+    // 5 + 3:16 = 3:21
+
   // Grabs user input
   var cruName = $("#cruise-name-input").val().trim();
   var cruDest = $("#destination-input").val().trim();
-  var cruStart = moment($("#start-input").val().trim(), "DD/MM/YY").format("X");
-  var cruRate = $("#rate-input").val().trim();
+  var firstCruise = moment($("#start-input").val().trim(), "hh:mm").format("X");
+  var cruiseFrequency = $("#rate-input").val().trim();
 
   // Creates local "temporary" object for holding cruise data
   var newCru = {
     name: cruName,
     destination: cruDest,
-    start: cruStart,
-    rate: cruRate
+    first: firstCruise,
+    frequency: cruiseFrequency
   };
 
   // Uploads cruise data to the database
@@ -71,30 +105,60 @@ database.ref().on("child_added", function(childSnapshot, prevChildKey) {
   // Store everything into a variable.
   var cruName = childSnapshot.val().name;
   var cruDest = childSnapshot.val().destination;
-  var cruStart = childSnapshot.val().start;
-  var cruRate = childSnapshot.val().rate;
+  var firstCruise = childSnapshot.val().first;
+  var cruiseFrequency = childSnapshot.val().frequency;
 
-  // Employee Info
+
+    // Assumptions
+    var cFrequency = 3;
+
+    // Time is 3:30 AM
+    var firstTime = "03:30";
+
+    // First Time (pushed back 1 year to make sure it comes before current time)
+    var firstTimeConverted = moment(firstTime, "hh:mm").subtract(1, "years");
+    console.log(firstTimeConverted);
+
+    // Current Time
+    var currentTime = moment();
+    console.log("CURRENT TIME: " + moment(currentTime).format("hh:mm"));
+
+    // Difference between the times
+    var diffTime = moment().diff(firstTimeConverted, "minutes");
+    console.log("DIFFERENCE IN TIME: " + diffTime);
+
+    // Time apart (remainder)
+    var cRemainder = diffTime % cFrequency;
+    console.log(cRemainder);
+
+    // Minutes Until Cruise
+    var cMinutesTillCruise = cruiseFrequency - cRemainder;
+    console.log("MINUTES TILL TRAIN: " + cMinutesTillCruise);
+
+    // Next Cruise
+    var nextCruise = moment().add(cMinutesTillCruise, "minutes");
+    console.log("ARRIVAL TIME: " + nextCruise.format("hh:mm"));
+
+  // Cruise Info
   console.log(cruName);
   console.log(cruDest);
-  console.log(cruStart);
-  console.log(cruRate);
+  console.log(firstCruise);
+  console.log(cruiseFrequency);
 
-  // Prettify the cruise start
-  var cruStartPretty = moment.unix(cruStart).format("MM/DD/YY");
+  // // Prettify the cruise start
+  // var cruStartPretty = moment.unix(cruStart).format("hh:mm");
 
-  // Calculate the next arrival using hardcore math
-  // To calculate the next arrival
-  var cruArrival = moment().diff(moment.unix(cruStart, "X"), "months");
-  console.log(cruArrival);
+  // // Calculate the next arrival using hardcore math
+  // // To calculate the next arrival
+  // var cruArrival = moment().diff(moment.unix(cruStart, "X"), "minutes");
+  // console.log(cruArrival);
 
   // Calculate the total billed rate
   // var empBilled = empMonths * empRate;
   // console.log(empBilled);
 
   // Add each train's data into the table
-  $("#cruise-table > tbody").append("<tr><td>" + cruName + "</td><td>" + cruDest + "</td><td>" +
-  cruStartPretty + "</td><td>" + cruArrival + "</td><td>" + cruRate + "</td></tr>");
+  $("#cruise-table > tbody").append("<tr><td>" + cruName + "</td><td>" + cruDest + "</td><td>" + cruiseFrequency + "</td><td>" + nextCruise.format("hh:mm") + "</td><td>" + cMinutesTillCruise + "</td></tr>");
 });
 
 // Example Time Math
