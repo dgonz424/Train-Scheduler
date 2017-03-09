@@ -1,20 +1,14 @@
-h1,
-button,
-#add-character
-
-{
-  color: blue;
-
+.jumbotron {
+	background-color: transparent;
 }
 
-.parkBoundary {
-  marin: 0 auto;
-  text-align: center;
+.panel-primary {
+	opacity: 0.75;
 }
 
-.container {
-  background-image: url(https://s-media-cache-ak0.pinimg.com/564x/d2/f2/10/d2f210eebb4ddfc22fbc7bd747adc78b.jpg);
-  height: 2700px;
+body {
+	background-image: url(http://www.a1-discount-cruises.com/images/wedding%20cruises%20ship%20sunset.jpg);
+  height: 950px;
 }
 
 
